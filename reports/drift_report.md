@@ -18,6 +18,18 @@ This report compares a reference training batch to a current synthetic cohort.
 | antibiotic | [] | 0.0035 |
 | ward_type | [] | 0.0037 |
 
+## Missingness Drift
+
+| Column | Reference Missing Rate | Current Missing Rate | Delta |
+| --- | ---: | ---: | ---: |
+| age | 0.0000 | 0.0000 | 0.0000 |
+| local_resistance_rate | 0.0000 | 0.0000 | 0.0000 |
+| comorbidity_score | 0.0000 | 0.0000 | 0.0000 |
+| pathogen | 0.0000 | 0.0000 | 0.0000 |
+| antibiotic | 0.0000 | 0.0000 | 0.0000 |
+| ward_type | 0.0000 | 0.0000 | 0.0000 |
+| susceptible | 0.0000 | 0.0000 | 0.0000 |
+
 ## Target Rate
 
 | Reference Susceptible Rate | Current Susceptible Rate | Delta |
@@ -26,7 +38,7 @@ This report compares a reference training batch to a current synthetic cohort.
 
 ## Alerts
 
-- Numeric drift alert: age mean changed by -0.115, above threshold 0.100.
+- No simple drift alerts triggered.
 
 ## Disclaimer
 

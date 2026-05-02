@@ -1,10 +1,12 @@
-.PHONY: install data validate cohort train api app monitor test all
+.PHONY: install data validate cohort train api app monitor mlflow-ui lint format test check all
 
 PYTHON ?= python3
 PIP ?= $(PYTHON) -m pip
 PYTEST ?= $(PYTHON) -m pytest
 UVICORN ?= $(PYTHON) -m uvicorn
 STREAMLIT ?= $(PYTHON) -m streamlit
+MLFLOW ?= $(PYTHON) -m mlflow
+RUFF ?= $(PYTHON) -m ruff
 
 install:
 	$(PIP) install -r requirements.txt
@@ -30,7 +32,18 @@ app:
 monitor:
 	$(PYTHON) -m src.monitoring.drift_report --reference data/reference/reference_batch.csv --current data/processed/cohort.csv --output reports/drift_report.md
 
+mlflow-ui:
+	$(MLFLOW) ui --host 0.0.0.0 --port 5000
+
+lint:
+	$(RUFF) check .
+
+format:
+	$(RUFF) format .
+
 test:
 	$(PYTEST)
+
+check: lint test
 
 all: data validate cohort train monitor test

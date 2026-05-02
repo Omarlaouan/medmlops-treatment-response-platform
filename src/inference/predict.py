@@ -11,7 +11,6 @@ import pandas as pd
 
 from src.features.build_features import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
-
 DISCLAIMER = (
     "This project is an educational prototype. It is not a medical device, "
     "not clinically validated, and must not be used for clinical decision-making."

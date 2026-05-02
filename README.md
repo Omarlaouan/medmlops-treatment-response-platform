@@ -10,6 +10,20 @@ This repository is a GitHub-ready MVP that simulates a healthcare ML pipeline fo
 
 This project uses synthetic AMR-like data for reproducibility. The objective is to demonstrate an MLOps architecture, not to produce a clinically valid antibiotic recommendation system.
 
+## What This Demonstrates
+
+- production-minded healthcare ML project structure
+- reproducible synthetic data generation and cohort construction
+- schema validation before modeling
+- explainable scikit-learn baseline training
+- MLflow experiment tracking
+- threshold, calibration, and slice evaluation
+- FastAPI model serving with metadata endpoints
+- Streamlit reviewer demo
+- structured drift monitoring
+- Docker packaging and GitHub Actions CI
+- model governance documentation and explicit clinical limitations
+
 ## Demo Screenshot
 
 ![Streamlit demo screenshot](docs/images/streamlit-demo.png)
@@ -39,13 +53,13 @@ flowchart LR
     B --> C["Cohort construction"]
     C --> D["Feature engineering"]
     D --> E["Model training"]
-    E --> F["Evaluation report"]
+    E --> F["Evaluation report + MLflow run"]
     E --> G["Joblib model"]
     G --> H["FastAPI inference"]
     G --> I["Streamlit demo"]
     G --> J["Explainability"]
     C --> K["Reference batch"]
-    K --> L["Drift monitoring"]
+    K --> L["Drift monitoring markdown + JSON"]
 ```
 
 ## Repository Structure
@@ -131,6 +145,12 @@ curl -X POST "http://localhost:8000/predict" \
 
 The response includes probability of susceptibility, recommendation level, explanation, and the required educational disclaimer.
 
+Additional endpoints:
+
+- `GET /health`
+- `GET /metadata`
+- `GET /model-info`
+
 ## Streamlit Demo
 
 Start the demo:
@@ -151,6 +171,22 @@ The baseline model is a scikit-learn pipeline:
 
 This is intentionally simple and explainable. It is a suitable baseline for showing MLOps structure without hiding the workflow behind heavy tooling.
 
+## Experiment Tracking
+
+Training logs an MLflow run when `mlflow` is installed:
+
+- parameters: model type, split seed, cohort size, feature lists
+- metrics: ROC-AUC, accuracy, precision, recall, F1, Brier score
+- artifacts: model, evaluation report, predictions, reference profile, model card
+
+Start the MLflow UI:
+
+```bash
+make mlflow-ui
+```
+
+Then open `http://localhost:5000`.
+
 ## MLOps Components
 
 - synthetic data generation
@@ -158,13 +194,16 @@ This is intentionally simple and explainable. It is a suitable baseline for show
 - cohort construction
 - reproducible train/test split
 - model artifact saved with joblib
+- MLflow experiment tracking
 - evaluation report
 - FastAPI serving
 - Streamlit demo
 - lightweight explainability
-- drift monitoring
+- structured drift monitoring
 - pytest tests
 - Docker and Docker Compose
+- linting with Ruff
+- GitHub Actions CI
 - model card
 
 ## Evaluation
@@ -177,6 +216,9 @@ Training produces:
 - recall
 - F1
 - Brier score
+- threshold tradeoff table
+- calibration summary
+- per-slice metrics by ward, pathogen, antibiotic, prior exposure, and comorbidity bucket
 
 The generated report is written to `reports/evaluation_report.md`, and test-set predictions are written to `data/processed/test_predictions.csv`.
 
@@ -187,6 +229,7 @@ The drift report compares `data/reference/reference_batch.csv` to the current co
 - numeric mean shifts
 - categorical distribution changes
 - new categories
+- missingness shifts
 - target-rate changes greater than 0.05
 
 Generate it with:
@@ -195,9 +238,23 @@ Generate it with:
 make monitor
 ```
 
+The monitor writes both `reports/drift_report.md` and `reports/drift_report.json`.
+
+## Project Quality
+
+Run all local checks:
+
+```bash
+make check
+```
+
+The CI workflow runs linting, a pipeline smoke test, pytest, and a Docker build.
+
 ## Model Card
 
 The model card is in `reports/model_card.md`. It documents intended use, non-use, dataset, target, features, metrics, explainability, deployment considerations, monitoring needs, and clinical limitations.
+
+The clinical safety note is in `reports/clinical_safety_note.md`.
 
 ## Limitations
 
@@ -208,12 +265,12 @@ The model card is in `reports/model_card.md`. It documents intended use, non-use
 - No dose, route, allergy, renal function, source-control, or stewardship rules
 - No prospective validation
 - No subgroup fairness validation
-- No calibration monitoring beyond Brier score
+- Calibration is demonstrated on synthetic data only
 
 ## Future Work
 
 - connect to credentialed datasets such as PhysioNet AMR-UTI or ARMD-MGB after proper access approval
-- add MLflow model registry
+- add MLflow model registry and promotion workflow
 - add calibration monitoring
 - add subgroup fairness analysis
 - add FHIR/OMOP-compatible cohort builder

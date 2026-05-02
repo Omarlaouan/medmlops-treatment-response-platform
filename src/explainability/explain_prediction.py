@@ -26,14 +26,10 @@ def get_global_feature_importance(
 
     importance = pd.DataFrame({"feature": feature_names, "coefficient": coefficients})
     positive = (
-        importance.sort_values("coefficient", ascending=False)
-        .head(top_n)
-        .to_dict(orient="records")
+        importance.sort_values("coefficient", ascending=False).head(top_n).to_dict(orient="records")
     )
     negative = (
-        importance.sort_values("coefficient", ascending=True)
-        .head(top_n)
-        .to_dict(orient="records")
+        importance.sort_values("coefficient", ascending=True).head(top_n).to_dict(orient="records")
     )
     return {"top_positive_drivers": positive, "top_negative_drivers": negative}
 
@@ -59,14 +55,25 @@ def explain_input(input_dict: dict[str, Any]) -> dict[str, list[str]]:
         negative_factors.append("Prior antibiotic exposure is expected to reduce susceptibility.")
 
     if ward_type == "ICU":
-        negative_factors.append("ICU setting is associated with higher resistance risk in this synthetic data.")
+        negative_factors.append(
+            "ICU setting is associated with higher resistance risk in this synthetic data."
+        )
 
     if pathogen == "E. coli" and antibiotic == "nitrofurantoin":
-        positive_factors.append("Nitrofurantoin is modeled as relatively active for urinary E. coli.")
+        positive_factors.append(
+            "Nitrofurantoin is modeled as relatively active for urinary E. coli."
+        )
     if antibiotic == "meropenem":
-        positive_factors.append("Meropenem is modeled as generally high activity, with penalties for high-risk context.")
-    if antibiotic == "vancomycin" and pathogen in {"Staphylococcus aureus", "Enterococcus faecalis"}:
-        positive_factors.append("Vancomycin is modeled as relevant for this Gram-positive pathogen.")
+        positive_factors.append(
+            "Meropenem is modeled as generally high activity, with penalties for high-risk context."
+        )
+    if antibiotic == "vancomycin" and pathogen in {
+        "Staphylococcus aureus",
+        "Enterococcus faecalis",
+    }:
+        positive_factors.append(
+            "Vancomycin is modeled as relevant for this Gram-positive pathogen."
+        )
     if antibiotic == "vancomycin" and pathogen in {
         "E. coli",
         "Klebsiella pneumoniae",
@@ -79,12 +86,16 @@ def explain_input(input_dict: dict[str, Any]) -> dict[str, list[str]]:
         "Pseudomonas aeruginosa",
         "Staphylococcus aureus",
     }:
-        negative_factors.append("Amoxicillin is modeled as lower activity for this pathogen context.")
+        negative_factors.append(
+            "Amoxicillin is modeled as lower activity for this pathogen context."
+        )
 
     contextual_factors.append(f"Pathogen-antibiotic context: {pathogen} treated with {antibiotic}.")
 
     return {
-        "positive_factors": positive_factors or ["No strong positive heuristic factors identified."],
-        "negative_factors": negative_factors or ["No strong negative heuristic factors identified."],
+        "positive_factors": positive_factors
+        or ["No strong positive heuristic factors identified."],
+        "negative_factors": negative_factors
+        or ["No strong negative heuristic factors identified."],
         "contextual_factors": contextual_factors,
     }

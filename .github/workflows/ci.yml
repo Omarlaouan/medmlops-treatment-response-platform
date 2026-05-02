@@ -27,6 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
+      - name: Lint
+        run: python -m ruff check .
+
       - name: Generate synthetic data
         run: |
           python -m src.data.generate_synthetic_amr \
@@ -60,6 +63,9 @@ jobs:
 
       - name: Run tests
         run: python -m pytest
+
+      - name: Build Docker image
+        run: docker build -t medmlops-treatment-response-platform:ci .
 
       - name: Upload generated reports
         uses: actions/upload-artifact@v4
