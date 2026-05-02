@@ -1,5 +1,7 @@
 # MedMLOps Treatment Response Platform
 
+[![CI](https://github.com/Omarlaouan/medmlops-treatment-response-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Omarlaouan/medmlops-treatment-response-platform/actions/workflows/ci.yml)
+
 A mini MLOps platform for explainable treatment-response prediction in healthcare.
 
 ## Overview

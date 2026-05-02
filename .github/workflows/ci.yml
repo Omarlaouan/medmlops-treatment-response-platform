@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test and smoke-run pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Generate synthetic data
+        run: |
+          python -m src.data.generate_synthetic_amr \
+            --n-rows 1500 \
+            --output data/raw/synthetic_amr.csv
+
+      - name: Validate schema
+        run: |
+          python -m src.data.validate_schema \
+            --input data/raw/synthetic_amr.csv
+
+      - name: Build cohort
+        run: |
+          python -m src.data.build_cohort \
+            --input data/raw/synthetic_amr.csv \
+            --output data/processed/cohort.csv \
+            --infection-site urinary
+
+      - name: Train baseline model
+        run: |
+          python -m src.training.train \
+            --input data/processed/cohort.csv \
+            --model-output models/treatment_response_model.joblib
+
+      - name: Generate drift report
+        run: |
+          python -m src.monitoring.drift_report \
+            --reference data/reference/reference_batch.csv \
+            --current data/processed/cohort.csv \
+            --output reports/drift_report.md
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Upload generated reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mlops-reports
+          path: |
+            reports/evaluation_report.md
+            reports/drift_report.md
+            data/processed/test_predictions.csv
+          if-no-files-found: ignore
