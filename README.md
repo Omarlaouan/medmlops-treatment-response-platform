@@ -10,6 +10,10 @@ This repository is a GitHub-ready MVP that simulates a healthcare ML pipeline fo
 
 This project uses synthetic AMR-like data for reproducibility. The objective is to demonstrate an MLOps architecture, not to produce a clinically valid antibiotic recommendation system.
 
+## Demo Screenshot
+
+![Streamlit demo screenshot](docs/images/streamlit-demo.png)
+
 ## Why This Project
 
 Treatment-response prediction is a realistic healthcare AI problem: patient context, microbiology context, local resistance patterns, and prior exposure all affect whether a treatment is likely to work. This project shows how that kind of model can be wrapped in an industrializable workflow with validation, reproducibility, serving, monitoring, and clear clinical limitations.
@@ -227,3 +231,7 @@ This project is relevant for:
 - data validation and monitoring in healthcare ML
 
 It demonstrates how a healthcare ML model can be moved beyond a notebook into a small but credible operational system.
+
+## License
+
+This project is released under the MIT License. See `LICENSE`.
