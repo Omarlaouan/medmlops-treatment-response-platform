@@ -135,6 +135,11 @@ def _recommendation_class(level: str) -> str:
     }.get(level, "uncertain")
 
 
+def _html_block(markup: str) -> str:
+    """Compact generated HTML so Streamlit Markdown does not render it as code."""
+    return " ".join(line.strip() for line in markup.splitlines() if line.strip())
+
+
 def _inject_css() -> None:
     st.markdown(
         """
@@ -646,13 +651,15 @@ def _render_sidebar_inputs() -> tuple[dict[str, Any], str]:
 
 
 def _metric_card(label: str, value: str, help_text: str = "") -> str:
-    return f"""
-    <div class="metric-card">
-      <div class="metric-label">{html.escape(label)}</div>
-      <div class="metric-value">{html.escape(value)}</div>
-      <div class="metric-help">{html.escape(help_text)}</div>
-    </div>
-    """
+    return _html_block(
+        f"""
+        <div class="metric-card">
+          <div class="metric-label">{html.escape(label)}</div>
+          <div class="metric-value">{html.escape(value)}</div>
+          <div class="metric-help">{html.escape(help_text)}</div>
+        </div>
+        """
+    )
 
 
 def _status_badge(label: str, status: str) -> str:
@@ -699,13 +706,15 @@ def _render_case_summary(payload: dict[str, Any], selected_preset: str) -> None:
         ("Local resistance", _format_percent(payload["local_resistance_rate"], 0)),
         ("Use boundary", "synthetic review only"),
     ]
-    cards = "\n".join(
-        f"""
-        <div class="case-item">
-          <div class="metric-label">{html.escape(label)}</div>
-          <div class="case-value">{html.escape(str(value))}</div>
-        </div>
-        """
+    cards = "".join(
+        _html_block(
+            f"""
+            <div class="case-item">
+              <div class="metric-label">{html.escape(label)}</div>
+              <div class="case-value">{html.escape(str(value))}</div>
+            </div>
+            """
+        )
         for label, value in items
     )
     st.markdown(f'<div class="case-summary">{cards}</div>', unsafe_allow_html=True)
@@ -804,23 +813,27 @@ def _render_prediction_workbench(
 
 
 def _render_factor_group(title: str, items: list[str], factor_class: str) -> None:
-    rows = "\n".join(
-        f"""
-        <div class="factor-row">
-          <div class="factor-dot {factor_class}"></div>
-          <div class="factor-title">{html.escape(item)}</div>
-        </div>
-        """
+    rows = "".join(
+        _html_block(
+            f"""
+            <div class="factor-row">
+              <div class="factor-dot {factor_class}"></div>
+              <div class="factor-title">{html.escape(item)}</div>
+            </div>
+            """
+        )
         for item in items
     )
     st.markdown(
-        f"""
-        <div class="section-card">
-          <div class="metric-label">{html.escape(title)}</div>
-          <div style="height: .65rem"></div>
-          {rows}
-        </div>
-        """,
+        _html_block(
+            f"""
+            <div class="section-card">
+              <div class="metric-label">{html.escape(title)}</div>
+              <div style="height: .65rem"></div>
+              {rows}
+            </div>
+            """
+        ),
         unsafe_allow_html=True,
     )
 
@@ -1212,13 +1225,15 @@ def _render_architecture() -> None:
         ("Monitoring", "Reference/current batch comparison emits markdown and JSON drift artifacts."),
         ("Governance", "Model card and safety note document limitations and intended boundaries."),
     ]
-    artifact_cards = "\n".join(
-        f"""
-        <div class="artifact-card">
-          <div class="artifact-title">{html.escape(title)}</div>
-          <div class="artifact-copy">{html.escape(copy)}</div>
-        </div>
-        """
+    artifact_cards = "".join(
+        _html_block(
+            f"""
+            <div class="artifact-card">
+              <div class="artifact-title">{html.escape(title)}</div>
+              <div class="artifact-copy">{html.escape(copy)}</div>
+            </div>
+            """
+        )
         for title, copy in artifacts
     )
     st.markdown(f'<div class="artifact-grid">{artifact_cards}</div>', unsafe_allow_html=True)
@@ -1233,14 +1248,16 @@ def _render_architecture() -> None:
         ("07", "Monitor", "Reference batch drift checks with markdown and JSON outputs."),
         ("08", "Govern", "Model card, clinical safety note, disclaimer, and CI."),
     ]
-    cards = "\n".join(
-        f"""
-        <div class="workflow-step">
-          <div class="workflow-index">{index}</div>
-          <div class="workflow-title">{html.escape(title)}</div>
-          <div class="workflow-copy">{html.escape(copy)}</div>
-        </div>
-        """
+    cards = "".join(
+        _html_block(
+            f"""
+            <div class="workflow-step">
+              <div class="workflow-index">{index}</div>
+              <div class="workflow-title">{html.escape(title)}</div>
+              <div class="workflow-copy">{html.escape(copy)}</div>
+            </div>
+            """
+        )
         for index, title, copy in steps
     )
     st.markdown(f'<div class="workflow-grid">{cards}</div>', unsafe_allow_html=True)
@@ -1270,13 +1287,15 @@ def _render_governance() -> None:
             "monitoring escalation paths, external validation, and prospective clinical review.",
         ),
     ]
-    panel_markup = "\n".join(
-        f"""
-        <div class="governance-panel">
-          <div class="governance-title">{html.escape(title)}</div>
-          <div class="governance-copy">{html.escape(copy)}</div>
-        </div>
-        """
+    panel_markup = "".join(
+        _html_block(
+            f"""
+            <div class="governance-panel">
+              <div class="governance-title">{html.escape(title)}</div>
+              <div class="governance-copy">{html.escape(copy)}</div>
+            </div>
+            """
+        )
         for title, copy in panels
     )
     st.markdown(f'<div class="governance-grid">{panel_markup}</div>', unsafe_allow_html=True)
