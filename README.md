@@ -159,7 +159,7 @@ Start the demo:
 make app
 ```
 
-The Streamlit app calls the local Python prediction function directly so the demo remains simple and reproducible.
+The Streamlit app calls the local Python prediction function directly so the demo remains simple and reproducible. It presents the project as a product-style workbench with prediction, model drivers, evaluation, monitoring, architecture, and governance tabs.
 
 ## Modeling Approach
 

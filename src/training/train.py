@@ -166,6 +166,24 @@ def _write_evaluation_report(
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def _write_evaluation_json(
+    metrics: dict[str, float],
+    threshold_rows: list[dict[str, float]],
+    calibration_rows: list[dict[str, float | int]],
+    slice_rows: dict[str, list[dict[str, Any]]],
+    output_path: str | Path,
+) -> None:
+    _write_json(
+        {
+            "global_metrics": metrics,
+            "threshold_metrics": threshold_rows,
+            "calibration_summary": calibration_rows,
+            "slice_metrics": slice_rows,
+        },
+        output_path,
+    )
+
+
 def _build_reference_profile(df: pd.DataFrame) -> dict[str, Any]:
     return {
         "n_rows": int(len(df)),
@@ -236,6 +254,7 @@ def train_model(
     input_path: str | Path = "data/processed/cohort.csv",
     model_output: str | Path = "models/treatment_response_model.joblib",
     evaluation_output: str | Path = "reports/evaluation_report.md",
+    evaluation_json_output: str | Path = "reports/evaluation_report.json",
     predictions_output: str | Path = "data/processed/test_predictions.csv",
     reference_output: str | Path = "data/reference/reference_batch.csv",
     reference_profile_output: str | Path = "data/reference/reference_profile.json",
@@ -306,6 +325,13 @@ def train_model(
         slice_rows=slice_rows,
         output_path=evaluation_output,
     )
+    _write_evaluation_json(
+        metrics=metrics,
+        threshold_rows=threshold_rows,
+        calibration_rows=calibration_rows,
+        slice_rows=slice_rows,
+        output_path=evaluation_json_output,
+    )
 
     metadata = {
         "model_name": "synthetic-treatment-response-baseline",
@@ -346,6 +372,7 @@ def train_model(
         },
         artifact_paths=[
             Path(evaluation_output),
+            Path(evaluation_json_output),
             Path(predictions_output),
             Path(reference_profile_output),
             Path("reports/model_card.md"),

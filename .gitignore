@@ -19,6 +19,7 @@ models/*.json
 mlruns/
 mlflow.db
 reports/drift_report.json
+reports/evaluation_report.json
 
 # Local environment
 .env

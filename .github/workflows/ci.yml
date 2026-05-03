@@ -74,6 +74,8 @@ jobs:
           name: mlops-reports
           path: |
             reports/evaluation_report.md
+            reports/evaluation_report.json
             reports/drift_report.md
+            reports/drift_report.json
             data/processed/test_predictions.csv
           if-no-files-found: ignore
