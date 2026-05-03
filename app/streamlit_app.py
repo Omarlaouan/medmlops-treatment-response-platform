@@ -101,6 +101,13 @@ CASE_PRESETS: dict[str, dict[str, Any]] = {
     },
 }
 
+BAND_LABELS = {
+    "strong candidate": "Strong candidate band",
+    "candidate": "Candidate band",
+    "uncertain": "Uncertain band",
+    "not recommended": "Below candidate band",
+}
+
 
 def _load_json(path: Path) -> dict[str, Any] | None:
     if not path.exists():
@@ -122,6 +129,13 @@ def _format_percent(value: Any, decimals: int = 1) -> str:
 def _format_number(value: Any, decimals: int = 3) -> str:
     try:
         return f"{float(value):.{decimals}f}"
+    except (TypeError, ValueError):
+        return "n/a"
+
+
+def _format_percentage_points(value: Any, decimals: int = 2) -> str:
+    try:
+        return f"{float(value) * 100:+.{decimals}f} pp"
     except (TypeError, ValueError):
         return "n/a"
 
@@ -153,6 +167,12 @@ def _inject_css() -> None:
             background: #ffffff;
             border-right: 1px solid #e5e7eb;
         }
+        #MainMenu,
+        footer,
+        [data-testid="stDecoration"],
+        .stDeployButton {
+            display: none !important;
+        }
         h1, h2, h3 {
             color: #172033;
             letter-spacing: 0;
@@ -167,16 +187,16 @@ def _inject_css() -> None:
         .product-bar {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             gap: 1rem;
-            padding: 0.95rem 1.1rem;
+            padding: 0.85rem 1rem;
             background: #ffffff;
             border: 1px solid #dfe5ee;
             border-radius: 8px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.65rem;
         }
         .product-title {
-            font-size: 1.45rem;
+            font-size: 1.55rem;
             font-weight: 750;
             line-height: 1.2;
             color: #172033;
@@ -221,13 +241,19 @@ def _inject_css() -> None:
             color: #991b1b;
         }
         .disclaimer {
-            padding: 0.78rem 0.9rem;
+            padding: 0.55rem 0.7rem;
             border-radius: 8px;
             border: 1px solid #fcd34d;
             background: #fffbeb;
             color: #78350f;
-            font-size: 0.92rem;
-            margin-bottom: 1rem;
+            font-size: 0.86rem;
+            margin-bottom: 0.85rem;
+        }
+        .hero-disclaimer {
+            border-color: #fca5a5;
+            background: #fff7ed;
+            color: #7c2d12;
+            font-weight: 650;
         }
         .section-intro {
             color: #526173;
@@ -238,12 +264,12 @@ def _inject_css() -> None:
         .case-summary {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.7rem;
-            margin: 0.35rem 0 1rem 0;
+            gap: 0.55rem;
+            margin: 0.35rem 0 0.35rem 0;
         }
         .case-item {
-            min-height: 84px;
-            padding: 0.82rem 0.9rem;
+            min-height: 70px;
+            padding: 0.68rem 0.75rem;
             background: #ffffff;
             border: 1px solid #dfe5ee;
             border-radius: 8px;
@@ -271,12 +297,21 @@ def _inject_css() -> None:
             font-size: 0.92rem;
         }
         .metric-card {
-            min-height: 122px;
+            min-height: 112px;
             padding: 0.9rem 1rem;
             background: #ffffff;
             border: 1px solid #dfe5ee;
             border-radius: 8px;
             overflow: hidden;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin-bottom: 1rem;
+        }
+        .metric-grid.six {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
         .metric-label {
             color: #64748b;
@@ -287,7 +322,7 @@ def _inject_css() -> None:
         }
         .metric-value {
             color: #172033;
-            font-size: 2rem;
+            font-size: 1.85rem;
             font-weight: 760;
             line-height: 1.15;
             margin-top: 0.45rem;
@@ -303,7 +338,7 @@ def _inject_css() -> None:
             align-items: center;
             padding: 0.32rem 0.62rem;
             border-radius: 6px;
-            font-size: 1.25rem;
+            font-size: 1.02rem;
             font-weight: 760;
             margin-top: 0.45rem;
         }
@@ -348,6 +383,17 @@ def _inject_css() -> None:
             color: #172033;
             border-right: 1px solid rgba(255,255,255,0.95);
             text-align: center;
+        }
+        .threshold-legend {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.65rem;
+        }
+        .legend-item {
+            color: #526173;
+            font-size: 0.78rem;
+            line-height: 1.3;
         }
         .seg-red { background: #fecaca; width: 40%; }
         .seg-amber { background: #fde68a; width: 20%; }
@@ -394,6 +440,47 @@ def _inject_css() -> None:
             font-size: 0.92rem;
             font-weight: 650;
         }
+        .driver-list {
+            display: grid;
+            gap: 0.55rem;
+            margin: 0.8rem 0 1rem;
+        }
+        .driver-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 4.7rem;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.72rem 0.85rem;
+            border: 1px solid #dfe5ee;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+        .driver-name {
+            color: #172033;
+            font-weight: 680;
+            overflow-wrap: anywhere;
+        }
+        .driver-bar-track {
+            height: 7px;
+            border-radius: 999px;
+            background: #eef2f7;
+            margin-top: 0.42rem;
+            overflow: hidden;
+        }
+        .driver-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: #0f766e;
+        }
+        .driver-bar.negative {
+            background: #dc2626;
+        }
+        .driver-score {
+            color: #526173;
+            font-size: 0.84rem;
+            font-weight: 720;
+            text-align: right;
+        }
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -426,30 +513,31 @@ def _inject_css() -> None:
             color: #78350f;
             margin-bottom: 0.55rem;
         }
-        .workflow-grid {
+        .pipeline-flow {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 0.7rem;
         }
-        .workflow-step {
-            min-height: 98px;
+        .pipeline-step {
+            min-height: 118px;
             padding: 0.85rem;
             border: 1px solid #dfe5ee;
             border-radius: 8px;
             background: #ffffff;
+            position: relative;
         }
-        .workflow-index {
+        .pipeline-index {
             color: #0f766e;
             font-weight: 800;
             font-size: 0.78rem;
             margin-bottom: 0.35rem;
         }
-        .workflow-title {
+        .pipeline-title {
             color: #172033;
             font-weight: 730;
             margin-bottom: 0.2rem;
         }
-        .workflow-copy {
+        .pipeline-copy {
             color: #64748b;
             font-size: 0.82rem;
             line-height: 1.35;
@@ -484,6 +572,27 @@ def _inject_css() -> None:
             font-size: 0.88rem;
             line-height: 1.42;
         }
+        .governance-panel.critical {
+            border-color: #fca5a5;
+            background: #fff7ed;
+        }
+        .doc-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.65rem;
+        }
+        .doc-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.62rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 0.82rem;
+            font-weight: 650;
+        }
         .empty-state {
             padding: 1rem;
             border: 1px dashed #cbd5e1;
@@ -498,7 +607,9 @@ def _inject_css() -> None:
             .chip-row {
                 justify-content: flex-start;
             }
-            .workflow-grid {
+            .pipeline-flow,
+            .metric-grid,
+            .metric-grid.six {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             .case-summary,
@@ -509,7 +620,9 @@ def _inject_css() -> None:
         }
         @media (max-width: 620px) {
             .case-summary,
-            .workflow-grid,
+            .pipeline-flow,
+            .metric-grid,
+            .metric-grid.six,
             .artifact-grid,
             .governance-grid {
                 grid-template-columns: 1fr;
@@ -528,33 +641,36 @@ def _inject_css() -> None:
 
 
 def _render_header(metadata: dict[str, Any] | None, model_exists: bool) -> None:
-    artifact_status = "Model loaded" if model_exists else "Model missing"
+    artifact_status = "Model ready" if model_exists else "Model missing"
     artifact_class = "teal" if model_exists else "red"
     timestamp = _model_timestamp(MODEL_PATH) if model_exists else "run make all"
     row_count = metadata.get("n_rows") if metadata else "n/a"
 
     st.markdown(
-        f"""
-        <div class="product-bar">
-          <div>
-            <div class="product-title">MedMLOps Treatment Response Platform</div>
-            <div class="product-subtitle">
-              Synthetic AMR treatment-response workbench for ML engineering review.
+        _html_block(
+            f"""
+            <div class="product-bar">
+              <div>
+                <div class="product-title">MedMLOps Treatment Response Platform</div>
+                <div class="product-subtitle">
+                  Synthetic AMR treatment-response workbench for ML engineering review.
+                </div>
+              </div>
+              <div class="chip-row">
+                <span class="chip red">Educational prototype</span>
+                <span class="chip {artifact_class}">{artifact_status}</span>
+                <span class="chip">Rows: {html.escape(str(row_count))}</span>
+                <span class="chip">Updated: {html.escape(timestamp)}</span>
+              </div>
             </div>
-          </div>
-          <div class="chip-row">
-            <span class="chip amber">Educational prototype</span>
-            <span class="chip {artifact_class}">{artifact_status}</span>
-            <span class="chip teal">Synthetic data</span>
-            <span class="chip red">Not clinical use</span>
-            <span class="chip">Rows: {html.escape(str(row_count))}</span>
-            <span class="chip">Updated: {html.escape(timestamp)}</span>
-          </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="disclaimer">{html.escape(DISCLAIMER)}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="disclaimer"><strong>Safety boundary:</strong> {html.escape(DISCLAIMER)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _apply_case_preset(preset_key: str) -> None:
@@ -568,8 +684,8 @@ def _apply_case_preset(preset_key: str) -> None:
 
 
 def _render_sidebar_inputs() -> tuple[dict[str, Any], str]:
-    st.sidebar.title("Input Panel")
-    st.sidebar.caption("Synthetic patient and microbiology context")
+    st.sidebar.title("Case Setup")
+    st.sidebar.caption("Synthetic patient, care-setting, and microbiology inputs.")
 
     preset_options = list(CASE_PRESETS)
     selected_preset = st.sidebar.selectbox(
@@ -583,7 +699,7 @@ def _render_sidebar_inputs() -> tuple[dict[str, Any], str]:
         st.session_state["_applied_case_preset"] = selected_preset
 
     st.sidebar.caption(CASE_PRESETS[selected_preset]["description"])
-    if st.sidebar.button("Reset inputs to selected case", use_container_width=True):
+    if st.sidebar.button("Reset preset", use_container_width=True):
         _apply_case_preset(selected_preset)
 
     st.sidebar.markdown("### Patient Context")
@@ -662,6 +778,12 @@ def _metric_card(label: str, value: str, help_text: str = "") -> str:
     )
 
 
+def _metric_grid(cards: list[tuple[str, str, str]], extra_class: str = "") -> None:
+    markup = "".join(_metric_card(label, value, help_text) for label, value, help_text in cards)
+    class_name = f"metric-grid {extra_class}".strip()
+    st.markdown(f'<div class="{class_name}">{markup}</div>', unsafe_allow_html=True)
+
+
 def _status_badge(label: str, status: str) -> str:
     status_class = {
         "ok": "status-ok",
@@ -735,79 +857,102 @@ def _render_prediction_workbench(
     st.markdown(
         """
         <div class="section-intro">
-          Explore synthetic patient, microbiology, and resistance inputs; review the model output;
-          and inspect the operational evidence that would surround a healthcare ML service.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    _render_case_summary(payload, selected_preset)
-
-    metric_col, tier_col, model_col = st.columns([1.1, 1.1, 1.0])
-    metric_col.markdown(
-        _metric_card(
-            "Probability of susceptibility",
-            _format_percent(probability),
-            "Model-estimated synthetic susceptibility probability",
-        ),
-        unsafe_allow_html=True,
-    )
-    tier_col.markdown(
-        f"""
-        <div class="metric-card">
-          <div class="metric-label">Recommendation tier</div>
-          <div class="tier {tier_class}">{html.escape(level)}</div>
-          <div class="metric-help">Threshold-based demo label</div>
+          Review the model output first, then inspect the synthetic case context and
+          supporting ML operations evidence.
         </div>
         """,
         unsafe_allow_html=True,
     )
     roc_auc = metadata.get("metrics", {}).get("roc_auc") if metadata else None
     brier = metadata.get("metrics", {}).get("brier_score") if metadata else None
-    model_col.markdown(
-        _metric_card(
-            "Model quality snapshot",
-            f"AUC {_format_number(roc_auc)}",
-            f"Brier {_format_number(brier)}",
+
+    band_markup = _html_block(
+        f"""
+        <div class="metric-card">
+          <div class="metric-label">Model output band</div>
+          <div class="tier {tier_class}">{html.escape(BAND_LABELS.get(level, level))}</div>
+          <div class="metric-help">Demo threshold label, not a treatment recommendation</div>
+        </div>
+        """
+    )
+    st.markdown(
+        _html_block(
+            f"""
+            <div class="metric-grid">
+              {_metric_card("Modeled susceptibility", _format_percent(probability), "Synthetic probability estimate")}
+              {band_markup}
+              {_metric_card(
+                  "Baseline quality",
+                  f"AUC {_format_number(roc_auc)}",
+                  f"Brier {_format_number(brier)}",
+              )}
+            </div>
+            """
         ),
         unsafe_allow_html=True,
     )
 
-    marker_left = max(0.0, min(100.0, probability * 100.0))
     st.markdown(
-        f"""
-        <div class="probability-card">
-          <div class="metric-label">Threshold Bands</div>
-          <div class="probability-rail">
-            <div class="probability-segment seg-red">&lt;0.40<br>not recommended</div>
-            <div class="probability-segment seg-amber">0.40-0.60<br>uncertain</div>
-            <div class="probability-segment seg-teal">0.60-0.80<br>candidate</div>
-            <div class="probability-segment seg-green">&ge;0.80<br>strong candidate</div>
-            <div class="probability-marker" style="left: {marker_left:.2f}%"></div>
-          </div>
+        _html_block(
+            f"""
+            <div class="disclaimer hero-disclaimer">
+              <strong>Not clinical guidance.</strong> {html.escape(prediction["warning"])}
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("Current case context", expanded=False):
+        _render_case_summary(payload, selected_preset)
+
+    marker_left = max(0.0, min(100.0, probability * 100.0))
+    legend_markup = _html_block(
+        """
+        <div class="threshold-legend">
+          <div class="legend-item"><strong>&lt;0.40</strong><br>below candidate</div>
+          <div class="legend-item"><strong>0.40-0.60</strong><br>uncertain</div>
+          <div class="legend-item"><strong>0.60-0.80</strong><br>candidate</div>
+          <div class="legend-item"><strong>&ge;0.80</strong><br>strong candidate</div>
         </div>
-        """,
+        """
+    )
+    st.markdown(
+        _html_block(
+            f"""
+            <div class="probability-card">
+              <div class="metric-label">Threshold Bands</div>
+              <div class="probability-rail">
+                <div class="probability-segment seg-red">&lt;0.40</div>
+                <div class="probability-segment seg-amber">0.40-0.60</div>
+                <div class="probability-segment seg-teal">0.60-0.80</div>
+                <div class="probability-segment seg-green">&ge;0.80</div>
+                <div class="probability-marker" style="left: {marker_left:.2f}%"></div>
+              </div>
+              {legend_markup}
+            </div>
+            """
+        ),
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        f"""
-        <div class="insight-panel">
-          <div class="insight-title">Model output interpretation</div>
-          <div class="insight-copy">{html.escape(_prediction_interpretation(level, probability))}</div>
-          <div class="insight-copy" style="margin-top: .45rem"><strong>Warning:</strong>
-            {html.escape(prediction["warning"])}
-          </div>
-        </div>
-        """,
+        _html_block(
+            f"""
+            <div class="insight-panel">
+              <div class="insight-title">Model output interpretation</div>
+              <div class="insight-copy">{html.escape(_prediction_interpretation(level, probability))}</div>
+            </div>
+            """
+        ),
         unsafe_allow_html=True,
     )
 
     positive_col, negative_col, context_col = st.columns(3)
     with positive_col:
-        _render_factor_group("Positive Drivers", explanation["positive_factors"], "positive")
+        _render_factor_group("Positive Factors", explanation["positive_factors"], "positive")
     with negative_col:
-        _render_factor_group("Negative Drivers", explanation["negative_factors"], "negative")
+        _render_factor_group("Negative Factors", explanation["negative_factors"], "negative")
     with context_col:
         _render_factor_group("Context", explanation["contextual_factors"], "context")
 
@@ -852,7 +997,6 @@ def _render_model_operations(metadata: dict[str, Any] | None) -> None:
     )
     mlflow_run_id = metadata.get("mlflow_run_id")
     mlflow_display = f"{mlflow_run_id[:8]}..." if mlflow_run_id else "not logged"
-    cols = st.columns(5)
     values = [
         ("Model type", metadata.get("model_type", "n/a"), "baseline classifier"),
         ("Train rows", str(metadata.get("n_train_rows", "n/a")), "reference batch"),
@@ -860,18 +1004,23 @@ def _render_model_operations(metadata: dict[str, Any] | None) -> None:
         ("Feature groups", str(feature_count), "numeric + categorical"),
         ("MLflow run", mlflow_display, "local tracking metadata"),
     ]
-    for column, (label, value, help_text) in zip(cols, values, strict=False):
-        column.markdown(_metric_card(label, str(value), help_text), unsafe_allow_html=True)
+    _metric_grid([(label, str(value), help_text) for label, value, help_text in values])
 
 
 def _clean_feature_name(feature: str) -> str:
-    return (
-        feature.replace("num__", "")
-        .replace("cat__", "")
-        .replace("_", " ")
-        .replace("ward type", "ward")
-        .replace("local resistance rate", "local resistance")
-    )
+    cleaned = feature.replace("categorical__", "").replace("numeric__", "")
+    categorical_prefixes = {
+        "antibiotic_": "Antibiotic",
+        "pathogen_": "Pathogen",
+        "ward_type_": "Ward",
+        "infection_site_": "Infection site",
+        "sex_": "Sex",
+    }
+    for prefix, label in categorical_prefixes.items():
+        if cleaned.startswith(prefix):
+            value = cleaned.removeprefix(prefix).replace("_", " ")
+            return f"{label}: {value}"
+    return cleaned.replace("_", " ").capitalize()
 
 
 def _importance_dataframe(records: list[dict[str, Any]]) -> pd.DataFrame:
@@ -885,6 +1034,32 @@ def _importance_dataframe(records: list[dict[str, Any]]) -> pd.DataFrame:
             "absolute_weight": df["coefficient"].map(lambda value: round(abs(float(value)), 4)),
         }
     )
+
+
+def _render_driver_rows(records: list[dict[str, Any]], direction: str) -> None:
+    if not records:
+        st.markdown('<div class="empty-state">No driver records available.</div>', unsafe_allow_html=True)
+        return
+
+    max_abs = max(abs(float(record["coefficient"])) for record in records) or 1.0
+    bar_class = "negative" if direction == "negative" else "positive"
+    rows = "".join(
+        _html_block(
+            f"""
+            <div class="driver-row">
+              <div>
+                <div class="driver-name">{html.escape(_clean_feature_name(str(record["feature"])))}</div>
+                <div class="driver-bar-track">
+                  <div class="driver-bar {bar_class}" style="width: {abs(float(record["coefficient"])) / max_abs * 100:.1f}%"></div>
+                </div>
+              </div>
+              <div class="driver-score">{float(record["coefficient"]):+.3f}</div>
+            </div>
+            """
+        )
+        for record in records
+    )
+    st.markdown(f'<div class="driver-list">{rows}</div>', unsafe_allow_html=True)
 
 
 def _render_model_drivers() -> None:
@@ -907,21 +1082,20 @@ def _render_model_drivers() -> None:
         )
         return
 
+    st.markdown(
+        """
+        Positive coefficients increase the model's susceptibility score; negative coefficients
+        decrease it. Coefficients are global model behavior, not patient-level causal evidence.
+        """
+    )
+
     positive_col, negative_col = st.columns(2)
     with positive_col:
-        st.markdown("#### Top Positive Coefficients")
-        st.dataframe(
-            _importance_dataframe(importance["top_positive_drivers"]),
-            width="stretch",
-            hide_index=True,
-        )
+        st.markdown("#### Positive Drivers")
+        _render_driver_rows(importance["top_positive_drivers"], "positive")
     with negative_col:
-        st.markdown("#### Top Negative Coefficients")
-        st.dataframe(
-            _importance_dataframe(importance["top_negative_drivers"]),
-            width="stretch",
-            hide_index=True,
-        )
+        st.markdown("#### Negative Drivers")
+        _render_driver_rows(importance["top_negative_drivers"], "negative")
 
     st.markdown(
         """
@@ -1007,6 +1181,18 @@ def _render_evaluation(evaluation: dict[str, Any] | None, metadata: dict[str, An
         return
 
     metrics = evaluation.get("global_metrics", {})
+    st.markdown(
+        """
+        <div class="insight-panel">
+          <div class="insight-title">Baseline review summary</div>
+          <div class="insight-copy">
+            This is a moderate synthetic baseline intended to demonstrate model review,
+            calibration checks, and threshold tradeoffs. It is not clinically validated.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     metric_cards = [
         ("ROC-AUC", "roc_auc", metrics.get("roc_auc"), "ranking quality"),
         ("Accuracy", "accuracy", metrics.get("accuracy"), "0.50 threshold"),
@@ -1015,14 +1201,13 @@ def _render_evaluation(evaluation: dict[str, Any] | None, metadata: dict[str, An
         ("F1", "f1", metrics.get("f1"), "precision-recall balance"),
         ("Brier", "brier_score", metrics.get("brier_score"), "probability calibration"),
     ]
-    metric_columns = st.columns(6)
-    for column, (label, metric_key, value, help_text) in zip(
-        metric_columns, metric_cards, strict=False
-    ):
-        column.markdown(
-            _metric_card(label, _metric_display(metric_key, value), help_text),
-            unsafe_allow_html=True,
-        )
+    _metric_grid(
+        [
+            (label, _metric_display(metric_key, value), help_text)
+            for label, metric_key, value, help_text in metric_cards
+        ],
+        "six",
+    )
 
     threshold_col, calibration_col = st.columns([1.05, 0.95])
     with threshold_col:
@@ -1030,7 +1215,7 @@ def _render_evaluation(evaluation: dict[str, Any] | None, metadata: dict[str, An
         threshold_df = _threshold_dataframe(evaluation.get("threshold_metrics", []))
         if not threshold_df.empty:
             st.dataframe(threshold_df, width="stretch", hide_index=True)
-        st.caption("Thresholds create demo recommendation bands; they are not clinical policies.")
+        st.caption("Thresholds create demo model-output bands; they are not clinical policies.")
 
     with calibration_col:
         st.markdown("#### Calibration Summary")
@@ -1141,30 +1326,20 @@ def _render_monitoring(drift: dict[str, Any] | None) -> None:
     alerts = drift.get("alerts", [])
     has_alert = bool(alerts)
     overall_status = "alert" if has_alert else "ok"
-    status_label = "Action needed" if has_alert else "Healthy"
+    status_label = "Review drift alerts" if has_alert else "No drift alerts"
 
-    alert_col, target_col, rows_col = st.columns(3)
-    alert_col.markdown(
-        _metric_card("Monitor status", status_label, f"{len(alerts)} active alert(s)"),
-        unsafe_allow_html=True,
-    )
     target = drift.get("target_summary") or {}
     target_delta = float(target.get("target_rate_delta", 0.0))
-    target_col.markdown(
-        _metric_card(
-            "Current target rate",
-            _format_percent(target.get("current_target_rate")),
-            f"Delta {_format_percent(target_delta, 2)}",
-        ),
-        unsafe_allow_html=True,
-    )
-    rows_col.markdown(
-        _metric_card(
-            "Reference target rate",
-            _format_percent(target.get("reference_target_rate")),
-            "training reference batch",
-        ),
-        unsafe_allow_html=True,
+    _metric_grid(
+        [
+            ("Batch monitor", status_label, f"{len(alerts)} active synthetic-batch alert(s)"),
+            (
+                "Target-rate comparison",
+                f"{_format_percent(target.get('reference_target_rate'))} to {_format_percent(target.get('current_target_rate'))}",
+                f"Change {_format_percentage_points(target_delta)}",
+            ),
+            ("Checks covered", "4 groups", "numeric, categorical, missingness, target rate"),
+        ]
     )
 
     st.markdown(
@@ -1172,9 +1347,25 @@ def _render_monitoring(drift: dict[str, Any] | None) -> None:
         <div class="insight-panel">
           <div class="insight-title">Operational status {_status_badge(status_label, overall_status)}</div>
           <div class="insight-copy">
-            Target-rate drift is {_format_percent(target_delta, 2)} against a simple alert threshold of
+            Target-rate drift is {_format_percentage_points(target_delta)} against a simple alert threshold of
             5 percentage points. This is a lightweight MVP monitor, not a replacement for production
             observability or clinical governance.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="section-card">
+          <div class="metric-label">What is monitored</div>
+          <div class="doc-row">
+            <span class="doc-pill">Numeric mean/std shift</span>
+            <span class="doc-pill">Categorical distribution shift</span>
+            <span class="doc-pill">New categories</span>
+            <span class="doc-pill">Missingness</span>
+            <span class="doc-pill">Target-rate change</span>
           </div>
         </div>
         """,
@@ -1217,102 +1408,110 @@ def _render_architecture() -> None:
         """,
         unsafe_allow_html=True,
     )
-    artifacts = [
-        ("Data pipeline", "CLI modules generate, validate, cohort, split, and materialize batches."),
-        ("Model lifecycle", "Training writes model, metadata, metrics, predictions, and MLflow traces."),
-        ("Serving layer", "FastAPI exposes health, metadata, model-info, and prediction endpoints."),
-        ("Demo interface", "Streamlit calls local inference and renders explainability + operations."),
-        ("Monitoring", "Reference/current batch comparison emits markdown and JSON drift artifacts."),
-        ("Governance", "Model card and safety note document limitations and intended boundaries."),
-    ]
-    artifact_cards = "".join(
-        _html_block(
-            f"""
-            <div class="artifact-card">
-              <div class="artifact-title">{html.escape(title)}</div>
-              <div class="artifact-copy">{html.escape(copy)}</div>
-            </div>
-            """
-        )
-        for title, copy in artifacts
-    )
-    st.markdown(f'<div class="artifact-grid">{artifact_cards}</div>', unsafe_allow_html=True)
-
     steps = [
-        ("01", "Generate", "Synthetic AMR-like records with reproducible signal."),
-        ("02", "Validate", "Schema, ranges, categories, missingness, and target checks."),
-        ("03", "Cohort", "Urinary cohort construction with pathogen-antibiotic controls."),
-        ("04", "Train", "Scikit-learn pipeline with evaluation and MLflow logging."),
-        ("05", "Serve", "FastAPI prediction, metadata, and model-info endpoints."),
-        ("06", "Explain", "Global coefficients and local heuristic drivers."),
-        ("07", "Monitor", "Reference batch drift checks with markdown and JSON outputs."),
-        ("08", "Govern", "Model card, clinical safety note, disclaimer, and CI."),
+        ("01", "Data", "Generate synthetic AMR-like records with reproducible signal."),
+        ("02", "Validate", "Check schema, ranges, categories, missingness, and target shape."),
+        ("03", "Cohort", "Build the urinary cohort and pathogen-antibiotic modeling frame."),
+        ("04", "Features", "Scale numeric inputs and one-hot encode categorical variables."),
+        ("05", "Train", "Fit the sklearn pipeline, log MLflow metadata, and save artifacts."),
+        ("06", "Evaluate", "Review metrics, thresholds, calibration, and model slices."),
+        ("07", "Serve", "Expose FastAPI prediction and metadata endpoints plus Streamlit UI."),
+        ("08", "Monitor", "Compare current batches to the reference profile and flag drift."),
     ]
     cards = "".join(
         _html_block(
             f"""
-            <div class="workflow-step">
-              <div class="workflow-index">{index}</div>
-              <div class="workflow-title">{html.escape(title)}</div>
-              <div class="workflow-copy">{html.escape(copy)}</div>
+            <div class="pipeline-step">
+              <div class="pipeline-index">{index}</div>
+              <div class="pipeline-title">{html.escape(title)}</div>
+              <div class="pipeline-copy">{html.escape(copy)}</div>
             </div>
             """
         )
         for index, title, copy in steps
     )
-    st.markdown(f'<div class="workflow-grid">{cards}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="pipeline-flow">{cards}</div>', unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div class="insight-panel">
+          <div class="insight-title">System artifacts</div>
+          <div class="doc-row">
+            <span class="doc-pill">data/raw</span>
+            <span class="doc-pill">data/processed</span>
+            <span class="doc-pill">models/*.joblib</span>
+            <span class="doc-pill">reports/*.md</span>
+            <span class="doc-pill">FastAPI service</span>
+            <span class="doc-pill">Streamlit console</span>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_governance() -> None:
     st.subheader("Governance and Limitations")
+    st.markdown(
+        f"""
+        <div class="disclaimer hero-disclaimer">
+          <strong>Safety boundary:</strong> {html.escape(DISCLAIMER)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     panels = [
-        (
-            "Intended use",
-            "Portfolio demonstration of healthcare ML engineering: reproducible synthetic data, "
-            "training, serving, explainability, monitoring, tests, and documentation.",
-        ),
         (
             "Not intended use",
             "No clinical decision-making, diagnosis, treatment selection, dosing, allergy review, "
             "breakpoint interpretation, or patient-level care workflow.",
+            "critical",
+        ),
+        (
+            "Intended use",
+            "Portfolio demonstration of healthcare ML engineering: reproducible synthetic data, "
+            "training, serving, explainability, monitoring, tests, and documentation.",
+            "",
         ),
         (
             "Clinical limitations",
             "Synthetic data only; no PHI, no external validation, no clinical calibration, no subgroup "
             "safety analysis, and no stewardship governance approval.",
+            "",
         ),
         (
             "Production readiness gap",
             "A real deployment would require credentialed datasets, FHIR or OMOP integration, "
             "monitoring escalation paths, external validation, and prospective clinical review.",
+            "",
         ),
     ]
     panel_markup = "".join(
         _html_block(
             f"""
-            <div class="governance-panel">
+            <div class="governance-panel {panel_class}">
               <div class="governance-title">{html.escape(title)}</div>
               <div class="governance-copy">{html.escape(copy)}</div>
             </div>
             """
         )
-        for title, copy in panels
+        for title, copy, panel_class in panels
     )
     st.markdown(f'<div class="governance-grid">{panel_markup}</div>', unsafe_allow_html=True)
     st.markdown(
         """
         <div class="insight-panel">
           <div class="insight-title">Documentation artifacts</div>
-          <div class="insight-copy">
-            Review <code>reports/model_card.md</code>, <code>reports/clinical_safety_note.md</code>,
-            <code>reports/evaluation_report.md</code>, and <code>reports/drift_report.md</code>
-            for the repo-level governance story.
+          <div class="doc-row">
+            <span class="doc-pill">reports/model_card.md</span>
+            <span class="doc-pill">reports/clinical_safety_note.md</span>
+            <span class="doc-pill">reports/evaluation_report.md</span>
+            <span class="doc-pill">reports/drift_report.md</span>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    st.info(DISCLAIMER)
 
 
 def main() -> None:
@@ -1340,7 +1539,7 @@ def main() -> None:
         monitoring_tab,
         architecture_tab,
         governance_tab,
-    ) = st.tabs(["Workbench", "Drivers", "Evaluation", "Monitoring", "Architecture", "Governance"])
+    ) = st.tabs(["Workbench", "Model", "Eval", "Monitor", "Pipeline", "Safety"])
 
     with workbench_tab:
         _render_prediction_workbench(
