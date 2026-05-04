@@ -24,10 +24,6 @@ This project uses synthetic AMR-like data for reproducibility. The objective is 
 - Docker packaging and GitHub Actions CI
 - model governance documentation and explicit clinical limitations
 
-## Demo Screenshot
-
-![Streamlit demo screenshot](docs/images/streamlit-demo.png)
-
 ## Why This Project
 
 Treatment-response prediction is a realistic healthcare AI problem: patient context, microbiology context, local resistance patterns, and prior exposure all affect whether a treatment is likely to work. This project shows how that kind of model can be wrapped in an industrializable workflow with validation, reproducibility, serving, monitoring, and clear clinical limitations.
